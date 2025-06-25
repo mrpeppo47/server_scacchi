@@ -9,24 +9,12 @@ const io = new Server(server, {
   }
 });
 
-interface Player {
-  id: string;
-  nome: string;
-  foto: string;
-}
-
-interface GameData {
-  players: Player[];
-  turno: "bianco" | "nero";
-  modalita: string;
-}
-
-const rooms: Record<string, GameData> = {};
+const rooms = {};
 
 io.on("connection", (socket) => {
-  console.log(`Nuovo client connesso: ${socket.id}`);
+  console.log(Nuovo client connesso: ${socket.id});
 
-  socket.on("create_room", (data: { roomId: string; nome: string; foto: string; modalita: string }) => {
+  socket.on("create_room", (data) => {
     const { roomId, nome, foto, modalita } = data;
 
     if (rooms[roomId]) {
@@ -37,10 +25,10 @@ io.on("connection", (socket) => {
     rooms[roomId] = { players: [{ id: socket.id, nome, foto }], turno: "bianco", modalita };
     socket.join(roomId);
     socket.emit("room_created", { roomId, nome, foto, modalita });
-    console.log(`✅ Stanza ${roomId} creata da ${socket.id} con nome ${nome} e modalità ${modalita}`);
+    console.log(✅ Stanza ${roomId} creata da ${socket.id} con nome ${nome} e modalità ${modalita});
   });
 
-  socket.on("join_room", (data: { roomId: string; nome: string; foto: string; modalita: string }) => {
+  socket.on("join_room", (data) => {
     const { roomId, nome, foto, modalita } = data;
     const room = rooms[roomId];
 
@@ -60,16 +48,16 @@ io.on("connection", (socket) => {
 
     if (room.players.length === 2) {
       const [p1, p2] = room.players;
-    
+
       const partita = {
         roomId,
         players: [
           { id: p1.id, nome: p1.nome, foto: p1.foto, team: "bianco" },
           { id: p2.id, nome: p2.nome, foto: p2.foto, team: "nero" }
         ],
-        modalita: room.modalita // usa la modalità salvata in stanza
+        modalita: room.modalita
       };
-    
+
       io.to(p1.id).emit("opponent_joined", {
         nome: p2.nome,
         foto: p2.foto,
@@ -85,11 +73,10 @@ io.on("connection", (socket) => {
     }
   });
 
-
   socket.on("start_game", (data) => {
     const room = rooms[data.roomId];
     if (!room) return;
-  
+
     const [p1, p2] = room.players;
     const partita = {
       roomId: data.roomId,
@@ -98,17 +85,16 @@ io.on("connection", (socket) => {
       modalita: "normale",
       online: true
     };
-    
+
     console.log("🟢 Partita iniziata nella stanza:", data.roomId);
     io.to(data.roomId).emit("start_game", partita);
   });
-  
 
-    socket.on("partita_vinta", (data) => {
-      console.log(`🏁 Partita vinta in ${data.roomId} da ${data.vincitore.nome}`);
-      io.to(data.roomId).emit("partita_vinta", data);
-      delete rooms[data.roomId];
-    });
+  socket.on("partita_vinta", (data) => {
+    console.log(🏁 Partita vinta in ${data.roomId} da ${data.vincitore.nome});
+    io.to(data.roomId).emit("partita_vinta", data);
+    delete rooms[data.roomId];
+  });
 
   socket.on("move", (data) => {
     const room = rooms[data.roomId];
@@ -122,24 +108,23 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`Client disconnesso: ${socket.id}`);
-  
+    console.log(Client disconnesso: ${socket.id});
+
     for (const [roomId, room] of Object.entries(rooms)) {
       const index = room.players.findIndex(p => p.id === socket.id);
-  
+
       if (index !== -1) {
         const giocatoreDisconnesso = room.players[index];
         const giocatoreRimasto = room.players.find(p => p.id !== socket.id);
-  
+
         room.players.splice(index, 1);
-  
+
         if (room.players.length === 0) {
           delete rooms[roomId];
-          console.log(`Stanza ${roomId} eliminata perché vuota`);
+          console.log(Stanza ${roomId} eliminata perché vuota);
         } else {
-          console.log(`Giocatore disconnesso dalla stanza ${roomId}:`, giocatoreDisconnesso.nome);
-  
-          // Invia evento di vittoria automatica al giocatore rimasto
+          console.log(Giocatore disconnesso dalla stanza ${roomId}:, giocatoreDisconnesso.nome);
+
           if (giocatoreRimasto) {
             io.to(giocatoreRimasto.id).emit("partita_vinta", {
               roomId,
@@ -150,16 +135,14 @@ io.on("connection", (socket) => {
               abbandono: true
             });
           }
-  
-          // Opzionale: notificare all’altro giocatore che l’avversario ha abbandonato
+
           io.to(roomId).emit("player_left");
         }
-  
+
         break;
       }
     }
   });
-  
 });
 
 server.listen(3000, () => console.log("Server Socket.IO in ascolto sulla porta 3000"));
