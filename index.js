@@ -1,7 +1,15 @@
-import { Server } from "socket.io";
+import express from "express";
 import http from "http";
+import { Server } from "socket.io";
 
-const server = http.createServer();
+const app = express();
+const server = http.createServer(app);
+
+// Risponde a richieste HTTP base
+app.get("/", (req, res) => {
+  res.send("✅ Socket.IO server attivo");
+});
+
 const io = new Server(server, {
   cors: {
     origin: "*",
