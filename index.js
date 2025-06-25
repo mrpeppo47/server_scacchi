@@ -12,7 +12,7 @@ const io = new Server(server, {
 const rooms = {};
 
 io.on("connection", (socket) => {
-  console.log(Nuovo client connesso: ${socket.id});
+  console.log(`Nuovo client connesso: ${socket.id}`);
 
   socket.on("create_room", (data) => {
     const { roomId, nome, foto, modalita } = data;
@@ -25,7 +25,7 @@ io.on("connection", (socket) => {
     rooms[roomId] = { players: [{ id: socket.id, nome, foto }], turno: "bianco", modalita };
     socket.join(roomId);
     socket.emit("room_created", { roomId, nome, foto, modalita });
-    console.log(✅ Stanza ${roomId} creata da ${socket.id} con nome ${nome} e modalità ${modalita});
+    console.log(`✅ Stanza ${roomId} creata da ${socket.id} con nome ${nome} e modalità ${modalita}`);
   });
 
   socket.on("join_room", (data) => {
@@ -44,7 +44,7 @@ io.on("connection", (socket) => {
 
     room.players.push({ id: socket.id, nome, foto });
     socket.join(roomId);
-    console.log("entra nella stanza", roomId, nome);
+    console.log(`entra nella stanza ${roomId} ${nome}`);
 
     if (room.players.length === 2) {
       const [p1, p2] = room.players;
@@ -86,12 +86,12 @@ io.on("connection", (socket) => {
       online: true
     };
 
-    console.log(🟢 Partita iniziata nella stanza: ${data.roomId});
+    console.log(`🟢 Partita iniziata nella stanza: ${data.roomId}`);
     io.to(data.roomId).emit("start_game", partita);
   });
 
   socket.on("partita_vinta", (data) => {
-    console.log(🏁 Partita vinta in ${data.roomId} da ${data.vincitore.nome});
+    console.log(`🏁 Partita vinta in ${data.roomId} da ${data.vincitore.nome}`);
     io.to(data.roomId).emit("partita_vinta", data);
     delete rooms[data.roomId];
   });
@@ -108,7 +108,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(Client disconnesso: ${socket.id});
+    console.log(`Client disconnesso: ${socket.id}`);
 
     for (const [roomId, room] of Object.entries(rooms)) {
       const index = room.players.findIndex(p => p.id === socket.id);
@@ -121,9 +121,9 @@ io.on("connection", (socket) => {
 
         if (room.players.length === 0) {
           delete rooms[roomId];
-          console.log(Stanza ${roomId} eliminata perché vuota);
+          console.log(`Stanza ${roomId} eliminata perché vuota`);
         } else {
-          console.log(Giocatore disconnesso dalla stanza ${roomId}: ${giocatoreDisconnesso.nome});
+          console.log(`Giocatore disconnesso dalla stanza ${roomId}: ${giocatoreDisconnesso.nome}`);
 
           if (giocatoreRimasto) {
             io.to(giocatoreRimasto.id).emit("partita_vinta", {
@@ -146,4 +146,4 @@ io.on("connection", (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(Server Socket.IO in ascolto sulla porta ${PORT}));
+server.listen(PORT, () => console.log(`Server Socket.IO in ascolto sulla porta ${PORT}`));
