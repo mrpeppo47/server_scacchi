@@ -86,7 +86,7 @@ io.on("connection", (socket) => {
       online: true
     };
 
-    console.log("🟢 Partita iniziata nella stanza:", data.roomId);
+    console.log(🟢 Partita iniziata nella stanza: ${data.roomId});
     io.to(data.roomId).emit("start_game", partita);
   });
 
@@ -123,7 +123,7 @@ io.on("connection", (socket) => {
           delete rooms[roomId];
           console.log(Stanza ${roomId} eliminata perché vuota);
         } else {
-          console.log(Giocatore disconnesso dalla stanza ${roomId}:, giocatoreDisconnesso.nome);
+          console.log(Giocatore disconnesso dalla stanza ${roomId}: ${giocatoreDisconnesso.nome});
 
           if (giocatoreRimasto) {
             io.to(giocatoreRimasto.id).emit("partita_vinta", {
@@ -145,4 +145,5 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3000, () => console.log("Server Socket.IO in ascolto sulla porta 3000"));
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(Server Socket.IO in ascolto sulla porta ${PORT}));
