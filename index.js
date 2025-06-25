@@ -1,13 +1,12 @@
-import express from "express";
 import { Server } from "socket.io";
 import http from "http";
 
-const app = express();
-const server = http.createServer(app);
-
-// Aggiungi questa linea solo per far Render "vedere" la porta HTTP:
-app.get("/", (req, res) => {
-  res.send("Server Socket.IO è attivo!");
+const server = http.createServer();
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
 });
 
 
